@@ -3,12 +3,15 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import userRoutes from './routes/userRoutes';
 import bodyParser from 'body-parser';
 import sequelize from './utility/sqlConnection';
+import authRoutes from './routes/authRoutes';
+
 const app: Express = express();
 
 app.use(bodyParser.json());
 
 // app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api',authRoutes);
 (async () => {
   await sequelize.sync({ force: false });
   console.log('Database synchronized');

@@ -1,14 +1,32 @@
-import express, { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/User";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { username, email, password, userType } = req.body;
-    const newUser = await User.create({ username, email, password, userType });
+    const newUser = await User.create(req.body);
     res.status(201).json(newUser);
-  } catch (error) {
-    console.error("Error registering user:", error);
-    res.status(500).send("Internal Server Error");
+  } catch (error: any) {
+    if (error.name === "SequelizeValidationError") {
+      const validationErrors = error.errors.map((err: any) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      return res
+        .status(400)
+        .json({ message: "Validation failed", errors: validationErrors });
+    }
+
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const validationErrors = error.errors.map((err: any) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      return res
+        .status(400)
+        .json({ message: "Validation failed", errors: validationErrors });
+    }
+
+    return res.status(400).json({ message: "Error creating user" });
   }
 };
 
@@ -92,4 +110,5 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 export { createUser, updateUser, deleteUser, getAllUsers, getUserById };
