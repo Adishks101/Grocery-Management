@@ -134,12 +134,10 @@ const updateGroceryItem = async (
       return;
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Grocery item updated successfully",
-        data: updatedGroceryItem,
-      });
+    res.status(200).json({
+      message: "Grocery item updated successfully",
+      data: updatedGroceryItem,
+    });
   } catch (error) {
     console.error("Error updating grocery item:", error);
     next(errorHandler(500, "Something went wrong"));
@@ -168,7 +166,11 @@ const deleteGroceryItem = async (
     return;
   }
 };
-const changeGroceryQuantity =async(req: Request, res: Response,next: NextFunction) => {
+const changeGroceryQuantity = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
@@ -180,14 +182,18 @@ const changeGroceryQuantity =async(req: Request, res: Response,next: NextFunctio
       next(errorHandler(404, "Grocery item not found"));
       return;
     }
-    res.status(200).json({message:"Updated Grocery item successfully",data:updatedGroceryItem})
-}
-catch (error) {
-  console.error("Error updating grocery item:", error);
-  next(errorHandler(500, "Something went wrong"));
-  return;
-}
-}
+    res
+      .status(200)
+      .json({
+        message: "Updated Grocery item successfully",
+        data: updatedGroceryItem,
+      });
+  } catch (error) {
+    console.error("Error updating grocery item:", error);
+    next(errorHandler(500, "Something went wrong"));
+    return;
+  }
+};
 export {
   createGrocery,
   getAllGrocery,
@@ -195,5 +201,5 @@ export {
   getGroceryById,
   updateGroceryItem,
   deleteGroceryItem,
-  changeGroceryQuantity
+  changeGroceryQuantity,
 };
