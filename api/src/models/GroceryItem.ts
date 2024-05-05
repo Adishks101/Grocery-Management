@@ -38,12 +38,22 @@ GroceryItem.init(
       allowNull: false,
     },
     price: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(10,2),
       allowNull: false,
+      validate: {
+        isDecimal: {
+          msg: 'Price must be a decimal number.',
+        },
+      }
     },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        isInt: {
+          msg: 'Quantity must be an integer.',
+        },
+      }
     },
     description: {
       type: DataTypes.TEXT,

@@ -81,13 +81,20 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let { pgSize, offset } = req.query;
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
 
-    const pageSize = parseInt(pgSize as string, 10) || 10;
-    const offsetValue = parseInt(offset as string, 10) || 0;
-    const users = await User.findAll({ limit: pageSize, offset: offsetValue });
+    const { count, rows } = await User.findAndCountAll({
+      offset,
+      limit: Number(limit),
+    });
 
-    res.status(200).json({ users });
+    res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / Number(limit)),
+      currentPage: Number(page),
+      data: rows,
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
