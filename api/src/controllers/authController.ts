@@ -7,11 +7,7 @@ import { errorHandler } from "../utility/middleware/errorHandler";
 
 dotenv.config();
 
-export const signIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const signIn = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -25,17 +21,24 @@ export const signIn = async (
       return next(errorHandler(400, "Invalid Credentials."));
     }
 
-    const { password: userPassword,} = user;
+    const { password: userPassword } = user;
     const isMatch = bcryptjs.compareSync(password, userPassword);
 
     if (isMatch) {
-      const token = jwt.sign(
+      const accessToken = jwt.sign(
         { id: user.id, userType: user.userType },
-        process.env.JWT_SECRET_KEY!
+        process.env.JWT_ACCESS_SECRET_KEY!,
+        { expiresIn: process.env.JWT_ACCESS_EXPIRATION }
+      );
+      const refreshToken = jwt.sign(
+        { id: user.id, userType: user.userType },
+        process.env.JWT_REFRESH_SECRET_KEY!,
+        { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
       );
       res
         .status(200)
-        .cookie("access_token", token, { httpOnly: true })
+        .cookie("access_token", accessToken, { httpOnly: true })
+        .cookie("refresh_token", refreshToken, { httpOnly: true })
         .json(user);
     } else {
       return next(errorHandler(400, "Invalid Credentials."));
@@ -44,3 +47,33 @@ export const signIn = async (
     next(error);
   }
 };
+
+const rotateToken = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (!refreshToken) {
+      return next(errorHandler(401, "Refresh token not provided."));
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET_KEY!
+    ) as { id: number; userType: string };
+
+    const accessToken = jwt.sign(
+      { id: decoded.id, userType: decoded.userType },
+      process.env.JWT_ACCESS_SECRET_KEY!,
+      { expiresIn: process.env.JWT_ACCESS_EXPIRATION }
+    );
+
+    res
+      .status(200)
+      .cookie("access_token", accessToken, { httpOnly: true })
+      .json({ message: "Access token refreshed successfully." });
+  } catch (error) {
+    next(errorHandler(401, "Invalid refresh token."));
+  }
+};
+
+export { signIn, rotateToken };

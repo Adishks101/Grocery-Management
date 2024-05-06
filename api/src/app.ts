@@ -5,9 +5,13 @@ import sequelize from './utility/sqlConnection';
 import authRoutes from './routes/authRoutes';
 import orderRoutes from './routes/orderRoutes';
 import groceryRoutes from './routes/groceryRoutes';
+import cookieParser from 'cookie-parser';
+import { CustomError } from './utility/middleware/errorHandler';
 
 const app: Express = express();
 app.use(bodyParser.json());
+app.use(cookieParser());
+
 app.use('/api/user', userRoutes);
 app.use('/api/grocery', groceryRoutes);
 app.use('/api/order', orderRoutes);
@@ -16,9 +20,14 @@ app.use('/api',authRoutes);
   await sequelize.sync({ force: false });
   console.log('Database synchronized');
 })();
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
+app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(statusCode).json({
+    success: false,
+    statusCode,
+    message,
+  });
 });
 
 export default app;

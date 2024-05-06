@@ -2,7 +2,6 @@
 
 import { Model, DataTypes, Association } from "sequelize";
 import User from "./User";
-import GroceryItem from "./GroceryItem";
 import sequelize from "../utility/sqlConnection";
 
 interface OrderAttributes {
@@ -11,7 +10,7 @@ interface OrderAttributes {
   totalAmount: number;
   totalItems: number;
   user?: User;
-  groceryItems?: GroceryItem[];
+ 
 }
 class Order extends Model<OrderAttributes> implements OrderAttributes {
   public id!: number;
@@ -19,7 +18,6 @@ class Order extends Model<OrderAttributes> implements OrderAttributes {
   public totalAmount!: number;
   public totalItems!: number;
   public readonly user?: User;
-  public readonly groceryItems?: GroceryItem[];
 
 }
 
@@ -52,10 +50,6 @@ Order.init(
 );
 
 Order.belongsTo(User, { foreignKey: "userId", as: "user" });
-Order.belongsToMany(GroceryItem, {
-  through: "OrderGroceryItems",
-  foreignKey: "orderId",
-  as: "groceryItems",
-});
+
 
 export default Order;

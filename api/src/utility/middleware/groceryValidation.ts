@@ -43,6 +43,7 @@ const groceryAlreadyExists = async (
     next(errorHandler(400, "Grocery item with this name already exists"));
     return;
   }
+  next()
 };
 
 const groceryQuantityCheck = async (

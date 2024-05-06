@@ -19,9 +19,16 @@ class GroceryItem extends Model<GroceryItemAttributes> implements GroceryItemAtt
   public description?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public async updateQuantity(quantity: number): Promise<void> {
+    if (this.quantity - quantity < 0) {
+      throw new Error("Insufficient quantity");
+    }
+    this.quantity -= quantity;
+    await this.save();
+  }
 }
 
-// Initialize the GroceryItem model with attributes and options
 GroceryItem.init(
   {
     id: {
