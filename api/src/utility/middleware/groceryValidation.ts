@@ -10,7 +10,7 @@ const validateGroceryItem = async (
   try {
     const { name, category, price, quantity, description } = req.body;
 
-    if (!name || !category || !price || !quantity) {
+    if (!name || !category || !price || !quantity|| !description) {
       next(errorHandler(400, "All fields are required"));
       return;
     }
