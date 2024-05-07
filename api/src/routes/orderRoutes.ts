@@ -7,7 +7,7 @@ import {
   getOrderByusers,
   getOwnOrders,
 } from "../controllers/orderController";
-import { orderValidator } from "../utility/middleware/orderValidation";
+import { orderValidator } from "../utility/middleware/validators/orderValidation";
 
 const router = express.Router();
 

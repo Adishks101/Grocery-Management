@@ -30,6 +30,35 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const createUserSelf = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const newUser = await User.create(req.body);
+    res.status(201).json(newUser);
+  } catch (error: any) {
+    if (error.name === "SequelizeValidationError") {
+      const validationErrors = error.errors.map((err: any) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      return res
+        .status(400)
+        .json({ message: "Validation failed", errors: validationErrors });
+    }
+
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const validationErrors = error.errors.map((err: any) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      return res
+        .status(400)
+        .json({ message: "Validation failed", errors: validationErrors });
+    }
+
+    return res.status(400).json({ message: "Error creating user" });
+  }
+};
+
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.params.id;
@@ -40,12 +69,40 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
       });
       return;
     }
-    const { username, email, password, userType } = req.body;
+    const { name, email, password, userType } = req.body;
 
-    user.username = username || user.username;
+    user.name = name || user.name;
     user.email = email || user.email;
     user.password = password || user.password;
     user.userType = userType || user.userType;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Update user",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const updateUserSelf = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByPk(userId);
+    if (!user) {
+      res.status(404).json({
+        message: "User not found",
+      });
+      return;
+    }
+    const { name, email, password, userType } = req.body;
+
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.password = password || user.password;
 
     await user.save();
 
@@ -69,7 +126,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
       });
       return;
     }
-    await user.destroy();
+    await user.softDelete();
     res.status(200).json({
       message: "User deleted",
     });
@@ -118,4 +175,4 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createUser, updateUser, deleteUser, getAllUsers, getUserById };
+export { createUser,createUserSelf,updateUserSelf, updateUser, deleteUser, getAllUsers, getUserById };

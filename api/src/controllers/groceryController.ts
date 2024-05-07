@@ -124,19 +124,19 @@ const updateGroceryItem = async (
     const { id } = req.params;
     const { name, category, price, quantity, description } = req.body;
 
-    const updatedGroceryItem = await GroceryItem.update(
+    const grocery = await GroceryItem.update(
       { name, category, price, quantity, description },
       { where: { id } }
     );
 
-    if (!updatedGroceryItem[0]) {
+    if (!grocery[0]) {
       next(errorHandler(404, "Grocery item not found"));
       return;
     }
 
     res.status(200).json({
       message: "Grocery item updated successfully",
-      data: updatedGroceryItem,
+      data: grocery,
     });
   } catch (error) {
     console.error("Error updating grocery item:", error);
@@ -152,14 +152,14 @@ const deleteGroceryItem = async (
 ) => {
   try {
     const { id } = req.params;
-    const deletedCount = await GroceryItem.destroy({ where: { id } });
+    const grocery = await GroceryItem.findByPk(id);
 
-    if (!deletedCount) {
+    if (!grocery) {
       next(errorHandler(404, "Grocery item not found"));
       return;
     }
-
-    res.status(200).json({ message: "Grocery item deleted successfully" });
+    grocery.softDelete();
+    res.status(200).json({ message: `${grocery.name} deleted successfully` });
   } catch (error) {
     console.error("Error deleting grocery item:", error);
     next(errorHandler(500, "Something went wrong deleting"));
@@ -174,20 +174,16 @@ const changeGroceryQuantity = async (
   try {
     const { id } = req.params;
     const { quantity } = req.body;
-    const updatedGroceryItem = await GroceryItem.update(
-      { quantity },
-      { where: { id } }
-    );
-    if (!updatedGroceryItem[0]) {
+    const grocery = await GroceryItem.findByPk(id);
+    if (!grocery) {
       next(errorHandler(404, "Grocery item not found"));
       return;
     }
-    res
-      .status(200)
-      .json({
-        message: "Updated Grocery item successfully",
-        data: updatedGroceryItem,
-      });
+    grocery.addQuantity(quantity);
+    res.status(200).json({
+      message: "Updated Grocery item successfully",
+      data: grocery,
+    });
   } catch (error) {
     console.error("Error updating grocery item:", error);
     next(errorHandler(500, "Something went wrong"));

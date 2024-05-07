@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { errorHandler } from "./errorHandler";
-import GroceryItem from "../../models/GroceryItem";
+import { errorHandler } from "../errorHandler";
+import GroceryItem from "../../../models/GroceryItem";
 
 const orderValidator = async (
   req: Request,
@@ -29,7 +29,8 @@ const orderValidator = async (
     }
     const groceryCheck = await groceryQuantityCheck(groceryItems);
     if (groceryCheck.length > 0) {
-      return next(errorHandler(400, groceryCheck.toString()));
+      const errorMessages = groceryCheck.map((error) => error.message).join(', ');
+      return next(errorHandler(400, errorMessages));
     }
     next();
   } catch (error) {
@@ -48,7 +49,7 @@ const groceryQuantityCheck = async (
       const { id, quantity } = item;
       const groceryItem = await GroceryItem.findByPk(id);
       if (!groceryItem) {
-        errorMessage.push({ message: `Grocery item with ${id} not found` });
+        errorMessage.push({ message: `Grocery item with id ${id} not found` });
       } else if (quantity > groceryItem.quantity) {
         errorMessage.push({
           message: `Grocery item quantity for ${groceryItem.name} is ${groceryItem.quantity} not sufficient`,

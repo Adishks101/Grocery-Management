@@ -3,7 +3,7 @@ import {
   groceryAlreadyExists,
   groceryQuantityCheck,
   validateGroceryItem,
-} from "../utility/middleware/groceryValidation";
+} from "../utility/middleware/validators/groceryValidation";
 import {
     changeGroceryQuantity,
   createGrocery,

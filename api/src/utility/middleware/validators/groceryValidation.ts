@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import GroceryItem from "../../models/GroceryItem";
-import { errorHandler } from "./errorHandler";
+import GroceryItem from "../../../models/GroceryItem";
+import { errorHandler } from "../errorHandler";
 
 const validateGroceryItem = async (
   req: Request,
@@ -11,7 +11,7 @@ const validateGroceryItem = async (
     const { name, category, price, quantity, description } = req.body;
 
     if (!name || !category || !price || !quantity|| !description) {
-      next(errorHandler(400, "All fields are required"));
+      next(errorHandler(400, "All fields name,category,price,quantity,description are required"));
       return;
     }
 

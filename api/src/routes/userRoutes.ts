@@ -1,14 +1,16 @@
 import express from "express";
-import { createUser, deleteUser, getAllUsers, getUserById, updateUser } from "../controllers/userController";
-import { validateUser } from "../utility/middleware/userValidation";
-import { isAdmin } from "../utility/middleware/authHandler";
+import { createUser, createUserSelf, deleteUser, getAllUsers, getUserById, updateUser, updateUserSelf } from "../controllers/userController";
+import { validateUser, validateUserSelf } from "../utility/middleware/validators/userValidation";
+import { isAdmin, isUser } from "../utility/middleware/authHandler";
 const router = express.Router();
 
-router.post("/register",validateUser, createUser);
-router.get("/all",getAllUsers);
-router.put("/:id",validateUser,updateUser);
-router.get("/:id",getUserById);
+router.post("/admin/register",isAdmin,validateUser, createUser);
+router.get("/all",isAdmin,getAllUsers);
+router.put("/admin/:id",isAdmin,validateUser,updateUser);
+router.get("/:id",isAdmin,getUserById);
 router.delete("/:id",isAdmin,deleteUser);
+router.post("/register",validateUserSelf, createUserSelf);
+router.put("/:id",isUser,validateUserSelf,updateUserSelf);
 
 
 

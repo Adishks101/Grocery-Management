@@ -6,21 +6,28 @@ enum UserType {
   Admin = "admin",
   User = "user",
 }
-
+enum UserStatus {
+  Active = 'active',
+  Inactive = 'inactive',
+  Banned = 'banned',
+}
 interface UserAttributes {
   id?: number;
-  username: string;
+  name: string;
   email: string;
   password: string;
   userType: UserType;
+  status: UserStatus
 }
 
 class User extends Model<UserAttributes> implements UserAttributes {
   public id!: number;
-  public username!: string;
+  public name!: string;
   public email!: string;
   public password!: string;
   public userType!: UserType;
+  public status!: UserStatus;
+
 
   public async hashPassword(): Promise<void> {
     if (this.password) {
@@ -28,6 +35,17 @@ class User extends Model<UserAttributes> implements UserAttributes {
       this.password = await bcrypt.hash(this.password, salt);
     }
   }
+
+  public async softDelete(): Promise<void> {
+    this.status = UserStatus.Inactive;
+    await this.save();
+  }
+
+  public async banUser(): Promise<void> {
+    this.status = UserStatus.Inactive;
+    await this.save();
+  }
+
 }
 
 User.init(
@@ -37,7 +55,7 @@ User.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    username: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
@@ -45,7 +63,6 @@ User.init(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -55,7 +72,14 @@ User.init(
       type: DataTypes.ENUM(...Object.values(UserType)),
       allowNull: false,
       values: Object.values(UserType),
+      defaultValue: UserType.User,
     },
+    status:{
+      type: DataTypes.ENUM(...Object.values(UserStatus)),
+      allowNull: false,
+      values: Object.values(UserStatus),
+      defaultValue: UserStatus.Active,
+    }
   },
   {
     sequelize,
