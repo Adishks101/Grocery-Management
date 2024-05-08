@@ -1,102 +1,43 @@
-import { Request, Response, NextFunction } from "express";
-import { errorHandler } from "../errorHandler";
+import Joi from 'joi';
 
-export const validateUser = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { name, email, password, userType } = req.body;
+const userSchema = Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_=+{}[\]|;:'",.<>?`~])[A-Za-z\d!@#$%^&*()-_=+{}[\]|;:'",.<>?`~]{8,}$/),
+    userType: Joi.string().valid(...Object.values(UserType)).required(),
+    address: Joi.string().required(),
+    phone: Joi.string().allow(null, '').pattern(/^\+?\d{1,3}[- ]?\d{10}$/).optional(),
+    dob: Joi.date().iso().required(),
+    gender: Joi.string().valid(...Object.values(Gender)).required(),
+});
 
-  const errors: string[] = [];
+const userSchemaSelf = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_=+{}[\]|;:'",.<>?`~])[A-Za-z\d!@#$%^&*()-_=+{}[\]|;:'",.<>?`~]{8,}$/),
+  address: Joi.string().required(),
+  phone: Joi.string().allow(null, '').pattern(/^\+?\d{1,3}[- ]?\d{10}$/).optional(),
+  dob: Joi.date().iso().required(),
+  gender: Joi.string().valid(...Object.values(Gender)).required(),
+});
 
-  if (!userType) {
-    errors.push("User type is required");
-  } else {
-    if (userType !== "admin" && userType !== "user") {
-      errors.push("Invalid user type. Allowed values: 'admin', 'user'");
-    }
-  }
+const updateUserSchema = Joi.object({
+  name: Joi.string().required(),
+  password: Joi.string().min(8).required().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_=+{}[\]|;:'",.<>?`~])[A-Za-z\d!@#$%^&*()-_=+{}[\]|;:'",.<>?`~]{8,}$/),
+  userType: Joi.string().valid(...Object.values(UserType)).required(),
+  address: Joi.string().required(),
+  phone: Joi.string().allow(null, '').pattern(/^\+?\d{1,3}[- ]?\d{10}$/).optional(),
+  dob: Joi.date().iso().required(),
+  gender: Joi.string().valid(...Object.values(Gender)).required(),
+});
+const updateUserSchemaSelf = Joi.object({
+name: Joi.string().required(),
+password: Joi.string().min(8).required().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_=+{}[\]|;:'",.<>?`~])[A-Za-z\d!@#$%^&*()-_=+{}[\]|;:'",.<>?`~]{8,}$/),
+address: Joi.string().required(),
+phone: Joi.string().allow(null, '').pattern(/^\+?\d{1,3}[- ]?\d{10}$/).optional(),
+dob: Joi.date().iso().required(),
+gender: Joi.string().valid(...Object.values(Gender)).required(),
+});
 
-  if (!name) {
-    errors.push("Name is required");
-  } else {
-    if (!/^[a-zA-Z0-9]+$/.test(name)) {
-      errors.push("Name must contain only letters and numbers");
-    }
-  }
-
-  if (!email) {
-    errors.push("Email is required");
-  } else {
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.push("Invalid email format");
-    }
-  }
-
-  if (!password) {
-    errors.push("Password is required");
-  } else {
-    if (!/[A-Z]/.test(password)) {
-      errors.push("Password must contain at least one uppercase letter");
-    }
-    if (password.length < 8) {
-      errors.push("Password must be at least 8 characters long");
-    }
-  }
-
-  if (errors.length) {
-    const errorMessage=errors.map(err => err).join(', ');
-    return next(errorHandler(400,errorMessage));
-  }
-console.log(req.body);
-
-  next();
-};
-
-export const validateUserSelf = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { name, email, password } = req.body;
-
-  const errors: string[] = [];
-
-
-  if (!name) {
-    errors.push("Name is required");
-  } else {
-    if (!/^[a-zA-Z0-9]+$/.test(name)) {
-      errors.push("Name must contain only letters and numbers");
-    }
-  }
-
-  if (!email) {
-    errors.push("Email is required");
-  } else {
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.push("Invalid email format");
-    }
-  }
-
-  if (!password) {
-    errors.push("Password is required");
-  } else {
-    if (!/[A-Z]/.test(password)) {
-      errors.push("Password must contain at least one uppercase letter");
-    }
-    if (password.length < 8) {
-      errors.push("Password must be at least 8 characters long");
-    }
-  }
-
-  if (errors.length) {
-    const errorMessage=errors.map(err => err).join(', ');
-    return next(errorHandler(400,errorMessage));
-  }
-console.log(req.body);
-
-  next();
-};
+export  {userSchema,userSchemaSelf,updateUserSchemaSelf,updateUserSchema};
 

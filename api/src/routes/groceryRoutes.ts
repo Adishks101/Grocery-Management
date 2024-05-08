@@ -1,8 +1,6 @@
 import express from "express";
 import {
-  groceryAlreadyExists,
   groceryQuantityCheck,
-  validateGroceryItem,
 } from "../utility/middleware/validators/groceryValidation";
 import {
     changeGroceryQuantity,
@@ -19,8 +17,6 @@ const router = express.Router();
 router.post(
   "/add",
   isAdmin,
-  validateGroceryItem,
-  groceryAlreadyExists,
   createGrocery
 );
 router.get("/all", isUser, getAllGrocery);

@@ -1,50 +1,18 @@
-import { Request, Response, NextFunction } from "express";
-import GroceryItem from "../../../models/GroceryItem";
+import {Request,Response, NextFunction } from "express";
+import Joi from "joi";
 import { errorHandler } from "../errorHandler";
+import GroceryItem from "../../../models/GroceryItem";
 
-const validateGroceryItem = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { name, category, price, quantity, description } = req.body;
-
-    if (!name || !category || !price || !quantity|| !description) {
-      next(errorHandler(400, "All fields name,category,price,quantity,description are required"));
-      return;
-    }
-
-    if (isNaN(Number(price)) || isNaN(Number(quantity))) {
-      next(errorHandler(400, "Price and quantity must be numbers"));
-      return;
-    }
-    const decimalRegex = /^\d+(\.\d{1,2})?$/;
-    if (!decimalRegex.test(price)) {
-        next(errorHandler(400, "Price must be a decimal number"));
-      return;
-    }
-
-    next();
-  } catch (error) {
-    console.error("Error validating grocery item:", error);
-    next(errorHandler(400, "Error validating GroceryItem"));
-    return;
-  }
-};
-const groceryAlreadyExists = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { name } = req.body;
-  const existingItem = await GroceryItem.findOne({ where: { name } });
-  if (existingItem) {
-    next(errorHandler(400, "Grocery item with this name already exists"));
-    return;
-  }
-  next()
-};
+const groceryItemSchema = Joi.object({
+  name: Joi.string().required(),
+  category: Joi.string().required(),
+  price: Joi.number().precision(2).positive().required(),
+  quantity: Joi.number().integer().positive().required(),
+  description: Joi.string().required(),
+  status: Joi.string()
+    .valid(...Object.values(Status))
+    .required(),
+});
 
 const groceryQuantityCheck = async (
   req: Request,
@@ -58,11 +26,14 @@ const groceryQuantityCheck = async (
     next(errorHandler(400, "Grocery Item not found"));
     return;
   }
-  if ( isNaN(Number(quantity))) {
+  if (isNaN(Number(quantity))) {
     next(errorHandler(400, "Quantity must be numbers"));
     return;
   }
-  
+
   next();
 };
-export { validateGroceryItem, groceryAlreadyExists,groceryQuantityCheck };
+export {
+  groceryQuantityCheck,
+  groceryItemSchema,
+};

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import GroceryItem from "../models/GroceryItem";
 import { errorHandler } from "../utility/middleware/errorHandler";
 import { Op } from "sequelize";
+import { groceryItemSchema } from "../utility/middleware/validators/groceryValidation";
 
 const createGrocery = async (
   req: Request,
@@ -9,6 +10,17 @@ const createGrocery = async (
   next: NextFunction
 ) => {
   try {
+    const {error}=groceryItemSchema.validate(req.body)
+    if(error){
+      return next(errorHandler(400,error.details[0].message));
+    }
+    const { name } = req.body;
+    const existingItem = await GroceryItem.findOne({ where: { name } });
+    if (existingItem) {
+      return next(
+        errorHandler(400, "Grocery item with this name already exists")
+      );
+    }
     const groceryItem = await GroceryItem.create(req.body);
     res.status(201).json(groceryItem);
   } catch (error: any) {

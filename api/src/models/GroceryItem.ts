@@ -1,10 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../utility/sqlConnection";
 
-enum GroceryStatus {
-  Active = "active",
-  Inactive = "inactive",
-}
+
 
 interface GroceryItemAttributes {
   id: number;
@@ -13,7 +10,7 @@ interface GroceryItemAttributes {
   price: number;
   quantity: number;
   description?: string;
-  status: GroceryStatus;
+  status: Status;
 }
 
 class GroceryItem
@@ -26,7 +23,7 @@ class GroceryItem
   public price!: number;
   public quantity!: number;
   public description?: string;
-  public status!: GroceryStatus;
+  public status!: Status;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -42,7 +39,7 @@ class GroceryItem
     await this.save();
   }
   public async softDelete(): Promise<void> {
-    this.status = GroceryStatus.Inactive;
+    this.status = Status.Inactive;
     await this.save();
   }
 }
@@ -85,10 +82,10 @@ GroceryItem.init(
       allowNull: true,
     },
     status:{
-      type: DataTypes.ENUM(...Object.values(GroceryStatus)),
+      type: DataTypes.ENUM(...Object.values(Status)),
       allowNull: false,
-      values: Object.values(GroceryStatus),
-      defaultValue: GroceryStatus.Active,
+      values: Object.values(Status),
+      defaultValue: Status.Active,
     }
   },
   {

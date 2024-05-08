@@ -8,13 +8,39 @@ import groceryRoutes from "./routes/groceryRoutes";
 import cookieParser from "cookie-parser";
 import { CustomError } from "./utility/middleware/errorHandler";
 import helmet from "helmet";
-import cors from "cors"
+import cors from "cors";
+import path from "path";
+import morgan from "morgan";
+import fs from "fs"
 
 const app: Express = express();
 app.use(helmet());
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 app.use(cookieParser());
+app.use(express.static(path.join( 'public',)));
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "logs", "access.log"),
+  { flags: "a" }
+);
+
+// Logging middleware
+morgan.token('custom', (req: Request, _res: Response) => {
+  const { method, url, body, query, headers } = req;
+  const userId = req.cookies?.id || 'N/A'; 
+
+  return JSON.stringify({
+    method,
+    url,
+    body,
+    query,
+    headers,
+    userId,
+  });
+});
+
+app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :custom', { stream: accessLogStream }));
 
 // routes
 app.use("/api/user", userRoutes);
@@ -23,7 +49,7 @@ app.use("/api/order", orderRoutes);
 app.use("/api", authRoutes);
 
 (async () => {
-  await sequelize.sync({ force: false });
+  await sequelize.sync({ force: false, alter: true });
   console.log("Database synchronized");
 })();
 app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {

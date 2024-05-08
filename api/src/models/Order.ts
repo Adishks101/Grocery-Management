@@ -3,17 +3,14 @@
 import { Model, DataTypes, Association } from "sequelize";
 import User from "./User";
 import sequelize from "../utility/sqlConnection";
-enum OrderStatus {
-  Active = "active",
-  Inactive = "inactive",
-}
+
 interface OrderAttributes {
   id: any;
   orderDate: Date;
   totalAmount: number;
   totalItems: number;
   user?: User;
-  status: OrderStatus;
+  status: Status;
  
 }
 class Order extends Model<OrderAttributes> implements OrderAttributes {
@@ -22,7 +19,7 @@ class Order extends Model<OrderAttributes> implements OrderAttributes {
   public totalAmount!: number;
   public totalItems!: number;
   public readonly user?: User;
-  public status!: OrderStatus;
+  public status!: Status;
 
 }
 
@@ -47,10 +44,10 @@ Order.init(
         allowNull: false,
       },
       status:{
-        type: DataTypes.ENUM(...Object.values(OrderStatus)),
+        type: DataTypes.ENUM(...Object.values(Status)),
         allowNull: false,
-        values: Object.values(OrderStatus),
-        defaultValue: OrderStatus.Active,
+        values: Object.values(Status),
+        defaultValue: Status.Active,
       }
   },
   {
