@@ -3,6 +3,7 @@
 import { Model, DataTypes, Association } from "sequelize";
 import User from "./User";
 import sequelize from "../utility/sqlConnection";
+import { Status } from "../utility/customDatatypes";
 
 interface OrderAttributes {
   id: any;

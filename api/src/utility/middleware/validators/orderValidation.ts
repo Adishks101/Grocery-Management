@@ -1,43 +1,43 @@
 import { NextFunction, Request, Response } from "express";
 import { errorHandler } from "../errorHandler";
 import GroceryItem from "../../../models/GroceryItem";
+import Joi from 'joi';
 
-const orderValidator = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { groceryItems, totalAmount, totalItems } = req.body;
-    if (!groceryItems || !totalAmount || !totalItems) {
-      return next(errorHandler(400, "All fields are required"));
+const orderSchema = Joi.object({
+    groceryItems: Joi.array()
+        .items(
+            Joi.object({
+                id: Joi.number().integer().positive().required(),
+                quantity: Joi.number().integer().positive().required(),
+            })
+        )
+        .min(1)
+        .required(),
+    totalAmount: Joi.number().precision(2).positive().required(),
+    totalItems: Joi.number().integer().positive().required(),
+});
+
+const orderValidator = async (req:Request, res:Response, next:NextFunction) => {
+    try {
+        const { error, value } = orderSchema.validate(req.body, { abortEarly: false });
+        if (error) {
+            const errorMessages = error.details.map((detail) => detail.message).join(', ');
+            return next(errorHandler(400, errorMessages));
+        }
+
+        const groceryCheck = await groceryQuantityCheck(value.groceryItems);
+        if (groceryCheck.length > 0) {
+            const errorMessages = groceryCheck.map((error) => error.message).join(', ');
+            return next(errorHandler(400, errorMessages));
+        }
+
+        next();
+    } catch (error) {
+        console.error(error);
+        return next(errorHandler(400, 'Invalid request'));
     }
-    if (isNaN(totalAmount) || isNaN(totalItems)) {
-      return next(
-        errorHandler(400, "Total amount and total items must be numbers")
-      );
-    }
-    const decimalRegex = /^\d+(\.\d{1,2})?$/;
-    if (!decimalRegex.test(totalAmount)) {
-      return next(errorHandler(400, "Price must be a decimal number"));
-    }
-    if (totalItems < 1) {
-      return next(errorHandler(400, "Total items must be greater than 0"));
-    }
-    if (groceryItems.length < 1) {
-      return next(errorHandler(400, "Grocery items must not be empty"));
-    }
-    const groceryCheck = await groceryQuantityCheck(groceryItems);
-    if (groceryCheck.length > 0) {
-      const errorMessages = groceryCheck.map((error) => error.message).join(', ');
-      return next(errorHandler(400, errorMessages));
-    }
-    next();
-  } catch (error) {
-    console.log(error);
-    return next(errorHandler(400, "Invalid request"));
-  }
 };
+
 
 const groceryQuantityCheck = async (
   groceryList: { id: number; quantity: number }[]

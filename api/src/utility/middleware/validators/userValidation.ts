@@ -1,4 +1,8 @@
 import Joi from 'joi';
+import { UserType, Gender } from '../../customDatatypes';
+import { NextFunction ,Request,Response} from 'express';
+import { errorHandler } from '../errorHandler';
+import User from '../../../models/User';
 
 const userSchema = Joi.object({
     name: Joi.string().required(),
@@ -39,5 +43,29 @@ dob: Joi.date().iso().required(),
 gender: Joi.string().valid(...Object.values(Gender)).required(),
 });
 
-export  {userSchema,userSchemaSelf,updateUserSchemaSelf,updateUserSchema};
+const createUserCheck=async (req: Request, res: Response,next: NextFunction) => {
+  const {error}=userSchema.validate(req.body);
+  if(error){
+    return next(errorHandler(400,error.details[0].message));
+  }
+  const {email}=req.body;
+const user=await User.findOne({where:{email}});
+if(user){
+  return next(errorHandler(400,"User with this email already exists"));
+}
+next()
+};
+const createUserSelfCheck=async (req: Request, res: Response,next: NextFunction) => {
+  const {error}=userSchemaSelf.validate(req.body);
+  if(error){
+    return next(errorHandler(400,error.details[0].message));
+  }
+  const {email}=req.body;
+const user=await User.findOne({where:{email}});
+if(user){
+  return next(errorHandler(400,"User with this email already exists"));
+}
+next()
+};
+export  {userSchema,userSchemaSelf,updateUserSchemaSelf,updateUserSchema,createUserCheck,createUserSelfCheck};
 

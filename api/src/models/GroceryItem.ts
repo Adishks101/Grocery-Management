@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../utility/sqlConnection";
+import { Status } from "../utility/customDatatypes";
 
 
 
@@ -11,6 +12,7 @@ interface GroceryItemAttributes {
   quantity: number;
   description?: string;
   status: Status;
+  groceryPicture?:string;
 }
 
 class GroceryItem
@@ -24,6 +26,7 @@ class GroceryItem
   public quantity!: number;
   public description?: string;
   public status!: Status;
+  public  groceryPicture?: string | undefined;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -86,7 +89,11 @@ GroceryItem.init(
       allowNull: false,
       values: Object.values(Status),
       defaultValue: Status.Active,
-    }
+    },
+    groceryPicture: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,

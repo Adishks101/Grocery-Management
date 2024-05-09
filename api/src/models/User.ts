@@ -1,6 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../utility/sqlConnection";
 import bcrypt from "bcryptjs";
+import { Gender, UserStatus, UserType } from "../utility/customDatatypes";
 
 interface UserAttributes {
   id?: number;

@@ -10,40 +10,10 @@ const createGrocery = async (
   next: NextFunction
 ) => {
   try {
-    const {error}=groceryItemSchema.validate(req.body)
-    if(error){
-      return next(errorHandler(400,error.details[0].message));
-    }
-    const { name } = req.body;
-    const existingItem = await GroceryItem.findOne({ where: { name } });
-    if (existingItem) {
-      return next(
-        errorHandler(400, "Grocery item with this name already exists")
-      );
-    }
     const groceryItem = await GroceryItem.create(req.body);
     res.status(201).json(groceryItem);
-  } catch (error: any) {
-    if (error.name === "SequelizeValidationError") {
-      const validationErrors = error.errors.map((err: any) => ({
-        field: err.path,
-        message: err.message,
-      }));
-      return res
-        .status(400)
-        .json({ message: "Validation failed", errors: validationErrors });
-    }
-
-    if (error.name === "SequelizeUniqueConstraintError") {
-      const validationErrors = error.errors.map((err: any) => ({
-        field: err.path,
-        message: err.message,
-      }));
-      return res
-        .status(400)
-        .json({ message: "Validation failed", errors: validationErrors });
-    }
-
+  } catch (error) {
+      console.log("Error creating Grocery item: " , error)
     return res.status(400).json({ message: "Error creating grocery" });
   }
 };
@@ -134,10 +104,8 @@ const updateGroceryItem = async (
 ) => {
   try {
     const { id } = req.params;
-    const { name, category, price, quantity, description } = req.body;
-
     const grocery = await GroceryItem.update(
-      { name, category, price, quantity, description },
+      req.body,
       { where: { id } }
     );
 

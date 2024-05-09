@@ -7,10 +7,6 @@ import { updateUserSchema, updateUserSchemaSelf, userSchema, userSchemaSelf } fr
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let data=req.body;
-    const {error}=userSchema.validate(data);
-    if(error){
-      return next(errorHandler(400,error.details[0].message));
-    }
     if(req.file)
 {     data = await adduserPicture(req.body, req.file);
 }    const newUser = await User.create(data);
@@ -31,10 +27,6 @@ const createUserSelf = async (
 ) => {
   try {
     let data = req.body;
-    const {error}=userSchemaSelf.validate(data);
-    if(error){
-      return next(errorHandler(400,error.details[0].message));
-    }
     if (req.file) {
       data = await adduserPicture(req.body, req.file);
     }

@@ -1,6 +1,8 @@
 import express from "express";
 import {
+  groceryCreateCheck,
   groceryQuantityCheck,
+  groceryUpdateCheck,
 } from "../utility/middleware/validators/groceryValidation";
 import {
     changeGroceryQuantity,
@@ -12,17 +14,15 @@ import {
   updateGroceryItem,
 } from "../controllers/groceryController";
 import { isAdmin, isUser } from "../utility/middleware/authHandler";
+import { groceryPictureUpload } from "../utility/fileUpload";
+
 const router = express.Router();
 
-router.post(
-  "/add",
-  isAdmin,
-  createGrocery
-);
+router.post("/add",groceryPictureUpload.single('groceryPicture'),isAdmin,groceryCreateCheck,createGrocery);
 router.get("/all", isUser, getAllGrocery);
 router.get("/search",isUser,getGroceryByName);
 router.get("/:id", isUser, getGroceryById);
-router.put("/:id", isAdmin, updateGroceryItem);
+router.put("/:id", groceryPictureUpload.single('groceryPicture'),isAdmin,groceryUpdateCheck, updateGroceryItem);
 router.delete("/:id", isAdmin, deleteGroceryItem);
 router.put("/add-quantity", isAdmin,groceryQuantityCheck,changeGroceryQuantity);
 

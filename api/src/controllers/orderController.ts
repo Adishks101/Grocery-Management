@@ -60,7 +60,9 @@ const getOrderByusers = async (
   try {
     const { page = 1, limit = 10, userId } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
-
+if(!userId){
+next(errorHandler(400,"Please provide a user ID"));
+}
     const { count, rows } = await Order.findAndCountAll({
       offset: offset,
       limit: Number(limit),
@@ -76,7 +78,7 @@ const getOrderByusers = async (
       data: rows,
     });
   } catch (error) {
-    console.log("Couldn't get all orders", error);
+    console.log("Couldn't get all orders by user", error);
     next(errorHandler(500, "Something went wrong with getting Orders"));
     return;
   }
@@ -125,7 +127,7 @@ const getOrderById = async (
         { model: User, as: "user" },
         { model: GroceryItem, as: "groceryItems" },
       ],
-    })) as Order;
+    }));
 
     if (!order) {
       next(errorHandler(404, "Order not found"));

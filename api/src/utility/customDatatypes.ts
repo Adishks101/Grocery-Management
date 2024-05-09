@@ -17,3 +17,4 @@ enum Status {
   Active = "active",
   Inactive = "inactive",
 }
+export{UserType, UserStatus, Gender,Status} 
