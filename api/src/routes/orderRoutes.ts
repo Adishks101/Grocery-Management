@@ -7,12 +7,12 @@ import {
   getOrderByusers,
   getOwnOrders,
 } from "../controllers/orderController";
-import { orderValidator } from "../utility/middleware/validators/orderValidation";
+import { orderQueryValidator, orderValidator } from "../utility/middleware/validators/orderValidation";
 
 const router = express.Router();
 
 router.post("/add", isUser,orderValidator, addOrder);
-router.get("/all", isAdmin, getAllOrder);
+router.get("/all", isAdmin,orderQueryValidator, getAllOrder);
 router.get("/search", isAdmin, getOrderByusers);
 router.get("/own", isUser, getOwnOrders);
 router.get("/:id", isUser, getOrderById);

@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import GroceryItem from "../models/GroceryItem";
 import { errorHandler } from "../utility/middleware/errorHandler";
 import { Op } from "sequelize";
-import { groceryItemSchema } from "../utility/middleware/validators/groceryValidation";
 import { removeFile } from "../utility/fileUpload";
 
 const createGrocery = async (
@@ -18,10 +17,10 @@ const createGrocery = async (
     const groceryItem = await GroceryItem.create(data);
     res.status(201).json(groceryItem);
   } catch (error) {
-      console.log("Error creating Grocery item: " , error)
-      if (req.file) {
-        removeFile(req.file, "User");
-      }
+    console.log("Error creating Grocery item: ", error);
+    if (req.file) {
+      removeFile(req.file, "User");
+    }
     return next(errorHandler(400, "Error creating Grocery item"));
   }
 };
@@ -32,10 +31,27 @@ const getAllGrocery = async (
   next: NextFunction
 ) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      category,
+      price,
+      quantity,
+      status,
+    } = req.query;
+
     const offset = (Number(page) - 1) * Number(limit);
+    const whereClause: any = {};
+
+    if (name) whereClause.name = { [Op.iLike]: `%${name}%` };
+    if (price) whereClause.price = { [Op.lte]: price };
+    if (quantity) whereClause.quantity = { [Op.gte]: quantity };
+    if (category) whereClause.category = category;
+    if(req.cookies.user.userType ==='admin' && status) whereClause.status = status;
 
     const { count, rows } = await GroceryItem.findAndCountAll({
+      where: whereClause,
       offset,
       limit: Number(limit),
     });
@@ -116,10 +132,7 @@ const updateGroceryItem = async (
     if (req.file) {
       data = await addgroceryPicture(req.body, req.file);
     }
-    const grocery = await GroceryItem.update(
-      data,
-      { where: { id } }
-    );
+    const grocery = await GroceryItem.update(data, { where: { id } });
 
     if (!grocery[0]) {
       next(errorHandler(404, "Grocery item not found"));

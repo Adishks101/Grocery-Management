@@ -31,18 +31,15 @@ const addOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page = 1, limit = 10,startDate,endDate,to } = req.query;
+    const { page = 1, limit = 10,startDate,endDate,totalAmount,totalItems } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const filter: any = {};
-    if (startDate && endDate) {
-    try { filter.orderDate = {
-        [Op.between]: [new Date(String(startDate)), new Date(String(endDate))],
-      };}
-      catch{
-        return next(errorHandler(400, "startDate and endDate should be valid date format"));
-      }
-    }
-    const { count, rows } = await Order.findAndCountAll({
+
+    if (startDate && endDate) filter.orderDate = {[Op.between]: [new Date(String(startDate)), new Date(String(endDate))]}
+    if(totalAmount) filter.totalAmount={[Op.gte]:totalAmount}
+    if(totalItems) filter.totalItems={[Op.lte]:totalItems}  
+    
+    const { count, rows } = await Order.findAndCountAll({ where:filter,
       offset,
       limit: Number(limit),
       include: [{ model: User, as: "user" }],

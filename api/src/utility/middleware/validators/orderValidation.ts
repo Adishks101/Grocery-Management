@@ -19,18 +19,16 @@ const orderSchema = Joi.object({
 
 const querySchema = Joi.object({
   totalItems: Joi.number()
-    .integer()
-    .min(0)
-    .message("Query parameter totalItems must be a non-negative integer."),
-  totalAmount: Joi.number()
-    .precision(2)
-    .message(
-      "Query parameter totalAmount must be a decimal with up to 2 decimal places."
-    ),
+    .positive()
+    .min(0),
+      totalAmount: Joi.number()
+    .precision(2).positive(),
   startDate: Joi.date()
     .iso(),
   endDate: Joi.date()
     .iso(),
+    page: Joi.number().integer().min(1),
+    limit: Joi.number().integer().min(1),
 });
 
 const orderValidator = async (
@@ -46,14 +44,7 @@ const orderValidator = async (
         .join(", ");
       return next(errorHandler(400, errorMessages));
     }
-    const queryError = querySchema.validate(req.query).error;
-    if (queryError) {
-      const errorMessages = queryError.details
-        .map((detail) => detail.message)
-        .join(", ");
-      return next(errorHandler(400, errorMessages));
-    }
-    const groceryItems = req.body;
+    const {groceryItems} = req.body;
     const groceryCheck = await groceryQuantityCheck(groceryItems);
     if (groceryCheck.length > 0) {
       const errorMessages = groceryCheck
@@ -93,4 +84,19 @@ const groceryQuantityCheck = async (
   }
 };
 
-export { orderValidator };
+const orderQueryValidator=async(req: Request,res: Response,next: NextFunction)=>{
+  try {
+    const {error} = querySchema.validate(req.query);
+    if (error) {
+      const errorMessages = error.details
+        .map((detail) => detail.message)
+        .join(", ");
+      return next(errorHandler(400, errorMessages));
+    }
+    next();
+  } catch (error) {
+    console.error(error);
+    return next(errorHandler(400, "Invalid request"));
+  }
+}
+export { orderValidator,orderQueryValidator };

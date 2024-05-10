@@ -3,11 +3,14 @@ import { UserType, Gender, Status } from '../../customDatatypes';
 import { NextFunction ,Request,Response} from 'express';
 import { errorHandler } from '../errorHandler';
 import User from '../../../models/User';
+
 const querySchema = Joi.object({
   name: Joi.string().required(),
   userType: Joi.string().valid(...Object.values(UserType)).optional(),
   gender: Joi.string().valid(...Object.values(Gender)).optional(),
   status:Joi.string().valid(...Object.values(Status)).optional(),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1),
 });
 
 const userSchema = Joi.object({

@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  checkGetAllGrocery,
   groceryCreateCheck,
   groceryQuantityCheck,
   groceryUpdateCheck,
@@ -19,7 +20,7 @@ import { groceryPictureUpload } from "../utility/fileUpload";
 const router = express.Router();
 
 router.post("/add",groceryPictureUpload.single('groceryPicture'),isAdmin,groceryCreateCheck,createGrocery);
-router.get("/all", isUser, getAllGrocery);
+router.get("/all", isUser,checkGetAllGrocery, getAllGrocery);
 router.get("/search",isUser,getGroceryByName);
 router.get("/:id", isUser, getGroceryById);
 router.put("/:id", groceryPictureUpload.single('groceryPicture'),isAdmin,groceryUpdateCheck, updateGroceryItem);
