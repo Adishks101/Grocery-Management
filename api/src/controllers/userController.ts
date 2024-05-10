@@ -3,6 +3,7 @@ import User from "../models/User";
 import { errorHandler } from "../utility/middleware/errorHandler";
 import { removeFile } from "../utility/fileUpload";
 import { updateUserSchema, updateUserSchemaSelf, userSchema, userSchemaSelf } from "../utility/middleware/validators/userValidation";
+import { Op } from "sequelize";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -136,10 +137,17 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10 ,userType, status, name, gender } = req.query;
+    const filter: any = {};
+    if (userType) filter.userType = userType;
+    if (status) filter.status = status;
+    if (name) filter.name = { [Op.iLike]: `%${name}%` };
+    if (gender) filter.gender = gender;
+
     const offset = (Number(page) - 1) * Number(limit);
 
     const { count, rows } = await User.findAndCountAll({
+      where:filter,
       offset,
       limit: Number(limit),
     });

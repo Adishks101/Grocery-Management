@@ -1,8 +1,14 @@
 import Joi from 'joi';
-import { UserType, Gender } from '../../customDatatypes';
+import { UserType, Gender, Status } from '../../customDatatypes';
 import { NextFunction ,Request,Response} from 'express';
 import { errorHandler } from '../errorHandler';
 import User from '../../../models/User';
+const querySchema = Joi.object({
+  name: Joi.string().required(),
+  userType: Joi.string().valid(...Object.values(UserType)).optional(),
+  gender: Joi.string().valid(...Object.values(Gender)).optional(),
+  status:Joi.string().valid(...Object.values(Status)).optional(),
+});
 
 const userSchema = Joi.object({
     name: Joi.string().required(),
@@ -67,5 +73,13 @@ if(user){
 }
 next()
 };
-export  {userSchema,userSchemaSelf,updateUserSchemaSelf,updateUserSchema,createUserCheck,createUserSelfCheck};
+
+const checkQuerygetUsers=async (req: Request, res: Response,next: NextFunction) =>{
+  const {error}=querySchema.validate(req.query);
+  if(error){
+    return next(errorHandler(400,error.details[0].message));
+  }
+  next();
+}
+export  {userSchema,userSchemaSelf,updateUserSchemaSelf,updateUserSchema,createUserCheck,createUserSelfCheck,checkQuerygetUsers};
 

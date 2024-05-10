@@ -12,8 +12,7 @@ const groceryItemSchema = Joi.object({
   quantity: Joi.number().integer().positive().required(),
   description: Joi.string().required(),
   status: Joi.string()
-    .valid(...Object.values(Status))
-    .required(),
+    .valid(...Object.values(Status)),
 });
 
 const groceryQuantityCheck = async (

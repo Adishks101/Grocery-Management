@@ -25,7 +25,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
     const decoded = decodeToken(req.cookies.access_token);
     if(!decoded) {
       return next(
-        errorHandler(401, "You are not authorized to perform this action2")
+        errorHandler(401, "You are not authorized to perform this action")
       );
     }
     else if (typeof decoded === "object" && decoded.id) {

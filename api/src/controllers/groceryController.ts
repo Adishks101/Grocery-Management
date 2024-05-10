@@ -3,6 +3,7 @@ import GroceryItem from "../models/GroceryItem";
 import { errorHandler } from "../utility/middleware/errorHandler";
 import { Op } from "sequelize";
 import { groceryItemSchema } from "../utility/middleware/validators/groceryValidation";
+import { removeFile } from "../utility/fileUpload";
 
 const createGrocery = async (
   req: Request,
@@ -10,11 +11,18 @@ const createGrocery = async (
   next: NextFunction
 ) => {
   try {
-    const groceryItem = await GroceryItem.create(req.body);
+    let data = req.body;
+    if (req.file) {
+      data = await addgroceryPicture(req.body, req.file);
+    }
+    const groceryItem = await GroceryItem.create(data);
     res.status(201).json(groceryItem);
   } catch (error) {
       console.log("Error creating Grocery item: " , error)
-    return res.status(400).json({ message: "Error creating grocery" });
+      if (req.file) {
+        removeFile(req.file, "User");
+      }
+    return next(errorHandler(400, "Error creating Grocery item"));
   }
 };
 
@@ -104,8 +112,12 @@ const updateGroceryItem = async (
 ) => {
   try {
     const { id } = req.params;
+    let data = req.body;
+    if (req.file) {
+      data = await addgroceryPicture(req.body, req.file);
+    }
     const grocery = await GroceryItem.update(
-      req.body,
+      data,
       { where: { id } }
     );
 
@@ -120,8 +132,10 @@ const updateGroceryItem = async (
     });
   } catch (error) {
     console.error("Error updating grocery item:", error);
-    next(errorHandler(500, "Something went wrong"));
-    return;
+    if (req.file) {
+      removeFile(req.file, "User");
+    }
+    return next(errorHandler(500, "Something went wrong"));
   }
 };
 
@@ -170,6 +184,12 @@ const changeGroceryQuantity = async (
     return;
   }
 };
+
+const addgroceryPicture = async (data: any, file: any) => {
+  data.profilePicture = process.env.URL + file.path;
+  return data;
+};
+
 export {
   createGrocery,
   getAllGrocery,
