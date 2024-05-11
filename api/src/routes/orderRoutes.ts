@@ -13,8 +13,8 @@ const router = express.Router();
 
 router.post("/add", isUser,orderValidator, addOrder);
 router.get("/all", isAdmin,orderQueryValidator, getAllOrder);
-router.get("/search", isAdmin, getOrderByusers);
-router.get("/own", isUser, getOwnOrders);
+router.get("/user/:id", isAdmin, getOrderByusers);
+router.get("/self", isUser, getOwnOrders);
 router.get("/:id", isUser, getOrderById);
 
 export default router;

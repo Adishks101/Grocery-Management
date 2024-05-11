@@ -31,20 +31,31 @@ const addOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page = 1, limit = 10,startDate,endDate,totalAmount,totalItems } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      startDate,
+      endDate,
+      totalAmount,
+      totalItems,
+    } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const filter: any = {};
 
-    if (startDate && endDate) filter.orderDate = {[Op.between]: [new Date(String(startDate)), new Date(String(endDate))]}
-    if(totalAmount) filter.totalAmount={[Op.gte]:totalAmount}
-    if(totalItems) filter.totalItems={[Op.lte]:totalItems}  
-    
-    const { count, rows } = await Order.findAndCountAll({ where:filter,
+    if (startDate && endDate)
+      filter.orderDate = {
+        [Op.between]: [new Date(String(startDate)), new Date(String(endDate))],
+      };
+    if (totalAmount) filter.totalAmount = { [Op.gte]: totalAmount };
+    if (totalItems) filter.totalItems = { [Op.lte]: totalItems };
+
+    const { count, rows } = await Order.findAndCountAll({
+      where: filter,
       offset,
       limit: Number(limit),
       include: [{ model: User, as: "user" }],
     });
-const data= await getAllGroceryItems(rows);
+    const data = await getAllGroceryItems(rows);
     res.status(200).json({
       totalItems: count,
       totalPages: Math.ceil(count / Number(limit)),
@@ -64,7 +75,8 @@ const getOrderByusers = async (
   next: NextFunction
 ) => {
   try {
-    const { page = 1, limit = 10, userId } = req.query;
+    const { page = 1, limit = 10 } = req.query;
+    const userId = req.params.id;
     const offset = (Number(page) - 1) * Number(limit);
     if (!userId) {
       next(errorHandler(400, "Please provide a user ID"));
@@ -72,12 +84,9 @@ const getOrderByusers = async (
     const { count, rows } = await Order.findAndCountAll({
       offset: offset,
       limit: Number(limit),
-      include: [
-        { model: User, as: "user", where: { id: userId } },
-        
-      ],
+      include: [{ model: User, as: "user", where: { id: userId } }],
     });
-    const data=await getAllGroceryItems(rows)
+    const data = await getAllGroceryItems(rows);
 
     res.status(200).json({
       totalItems: count,
@@ -105,15 +114,14 @@ const getOwnOrders = async (
     const { count, rows } = await Order.findAndCountAll({
       offset: offset,
       limit: Number(limit),
-      include: [
-        { model: User, as: "user", where: { id: userId } },
-      ],
+      include: [{ model: User, as: "user", where: { id: userId } }],
     });
+    const data=getAllGroceryItems(rows);
     res.status(200).json({
       totalItems: count,
       totalPages: Math.ceil(count / Number(limit)),
       currentPage: Number(page),
-      data: rows,
+      data,
     });
   } catch (error) {
     console.log("Couldn't get all orders", error);
@@ -130,10 +138,7 @@ const getOrderById = async (
   try {
     const orderId = req.params.id;
     const order = await Order.findByPk(orderId, {
-      include: [
-        { model: User, as: "user" },
-        { model: GroceryItem, as: "groceryItems" },
-      ],
+      include: [{ model: User, as: "user" }],
     });
 
     if (!order) {
@@ -145,7 +150,8 @@ const getOrderById = async (
       (req.cookies.user.id === order.user?.id ||
         req.cookies.user.userType === "admin")
     ) {
-      res.status(200).json({ data: order });
+      const data = getGrocery(order);
+      res.status(200).json({ data });
     } else {
       next(errorHandler(403, "You are not authorized to view this order"));
       return;
@@ -191,19 +197,25 @@ const getAllGroceryItems = async (data: Order[]) => {
   try {
     const addedData = await Promise.all(
       data.map(async (orderItem: any) => {
-        const groceryItem = await OrderItem.findOne({
-          where: { orderId: orderItem.id },      include: [{ model: GroceryItem, as: "groceryItem" }],
-
-        });
-        if (groceryItem) {
-          orderItem.items = groceryItem;
-        } else {
-          orderItem.items = null;
-        }
-        return orderItem;
+        return await getGrocery(orderItem);
       })
     );
     return addedData;
+  } catch (error) {
+    console.error("Error fetching grocery items:", error);
+    throw new Error("Error fetching grocery items");
+  }
+};
+
+const getGrocery = async (orderItem: any) => {
+  try {
+    const orderWithGrocery = (await OrderItem.findOne({
+      where: { orderId: orderItem.id },
+      include: [{ model: GroceryItem, as: "groceryItem" }],
+    })) as any;
+
+    orderItem.items = orderWithGrocery ? orderWithGrocery.groceryItem : null;
+    return orderItem;
   } catch (error) {
     console.error("Error fetching grocery items:", error);
     throw new Error("Error fetching grocery items");

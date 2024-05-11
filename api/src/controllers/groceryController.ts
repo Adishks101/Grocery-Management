@@ -44,7 +44,7 @@ const getAllGrocery = async (
     const offset = (Number(page) - 1) * Number(limit);
     const whereClause: any = {};
 
-    if (name) whereClause.name = { [Op.iLike]: `%${name}%` };
+    if (name) whereClause.name = { [Op.like]: `%${name}%` };
     if (price) whereClause.price = { [Op.lte]: price };
     if (quantity) whereClause.quantity = { [Op.gte]: quantity };
     if (category) whereClause.category = category;
@@ -76,9 +76,13 @@ const getGroceryByName = async (
 ) => {
   try {
     const { page = 1, limit = 10, name } = req.query;
+    console.log(req.query);
+    
     const offset = (Number(page) - 1) * Number(limit);
     const { count, rows } = await GroceryItem.findAndCountAll({
-      where: { name: { [Op.iLike]: `%${name}%` } },
+      where: { name: { [Op.like]: `%${name}%` } },
+      offset,
+      limit:Number(limit)
     });
 
     if (!rows) {

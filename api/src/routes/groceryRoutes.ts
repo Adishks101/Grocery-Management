@@ -25,6 +25,6 @@ router.get("/search",isUser,getGroceryByName);
 router.get("/:id", isUser, getGroceryById);
 router.put("/:id", groceryPictureUpload.single('groceryPicture'),isAdmin,groceryUpdateCheck, updateGroceryItem);
 router.delete("/:id", isAdmin, deleteGroceryItem);
-router.put("/add-quantity", isAdmin,groceryQuantityCheck,changeGroceryQuantity);
+router.put("/add-quantity/:id", isAdmin,groceryQuantityCheck,changeGroceryQuantity);
 
 export default router;
