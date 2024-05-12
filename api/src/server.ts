@@ -49,7 +49,7 @@ app.use("/api/order", orderRoutes);
 app.use("/api", authRoutes);
 
 (async () => {
-  await sequelize.sync({ alter: true });
+  await sequelize.sync();
   console.log("Database synchronized");
 })();
 app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {

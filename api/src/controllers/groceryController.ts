@@ -142,10 +142,11 @@ const updateGroceryItem = async (
       next(errorHandler(404, "Grocery item not found"));
       return;
     }
+    const updatedGrocery=await GroceryItem.findByPk(id);
 
     res.status(200).json({
       message: "Grocery item updated successfully",
-      data: grocery,
+      data: updatedGrocery,
     });
   } catch (error) {
     console.error("Error updating grocery item:", error);

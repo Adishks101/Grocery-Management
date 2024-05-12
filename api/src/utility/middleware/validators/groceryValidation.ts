@@ -14,7 +14,15 @@ const groceryItemSchema = Joi.object({
   status: Joi.string().valid(...Object.values(Status)),
   
 });
-
+const groceryItemUpdateSchema = Joi.object({
+  name: Joi.string(),
+  category: Joi.string(),
+  price: Joi.number().precision(2).positive(),
+  quantity: Joi.number().integer().positive(),
+  description: Joi.string(),
+  status: Joi.string().valid(...Object.values(Status)),
+  
+});
 const querySchema = Joi.object({
   name: Joi.string(),
   category: Joi.string(),
@@ -73,14 +81,14 @@ const groceryUpdateCheck = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { error } = groceryItemSchema.validate(req.body);
+  const { error } = groceryItemUpdateSchema.validate(req.body);
   if (error) {
     const errorMessages = error.details
     .map((detail) => detail.message)
     .join(", ");
   return next(errorHandler(400, errorMessages));  }
   const { id } = req.params;
-  const { quantity, name } = req.body;
+  const { name } = req.body;
   const existingItem = await GroceryItem.findByPk(id);
   if (!existingItem) {
     next(errorHandler(400, "Grocery Item not found"));
@@ -94,11 +102,6 @@ const groceryUpdateCheck = async (
       errorHandler(400, "Grocery item with this name already exists")
     );
   }
-  if (isNaN(Number(quantity))) {
-    next(errorHandler(400, "Quantity must be numbers"));
-    return;
-  }
-
   next();
 };
 const checkGetAllGrocery = async (

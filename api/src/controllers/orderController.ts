@@ -53,9 +53,10 @@ const getAllOrder = async (req: Request, res: Response, next: NextFunction) => {
       where: filter,
       offset,
       limit: Number(limit),
-      include: [{ model: User, as: "user" }],
     });
     const data = await getAllGroceryItems(rows);
+    console.log(data);
+    
     res.status(200).json({
       totalItems: count,
       totalPages: Math.ceil(count / Number(limit)),
@@ -82,12 +83,11 @@ const getOrderByusers = async (
       next(errorHandler(400, "Please provide a user ID"));
     }
     const { count, rows } = await Order.findAndCountAll({
+      where:{userId:userId}as any,
       offset: offset,
       limit: Number(limit),
-      include: [{ model: User, as: "user", where: { id: userId } }],
     });
     const data = await getAllGroceryItems(rows);
-
     res.status(200).json({
       totalItems: count,
       totalPages: Math.ceil(count / Number(limit)),
@@ -112,11 +112,12 @@ const getOwnOrders = async (
     const offset = (Number(page) - 1) * Number(limit);
 
     const { count, rows } = await Order.findAndCountAll({
+      where:{userId:userId} as any,
       offset: offset,
       limit: Number(limit),
-      include: [{ model: User, as: "user", where: { id: userId } }],
-    });
-    const data=getAllGroceryItems(rows);
+    });  
+
+    const data=await getAllGroceryItems(rows);
     res.status(200).json({
       totalItems: count,
       totalPages: Math.ceil(count / Number(limit)),
@@ -137,9 +138,7 @@ const getOrderById = async (
 ) => {
   try {
     const orderId = req.params.id;
-    const order = await Order.findByPk(orderId, {
-      include: [{ model: User, as: "user" }],
-    });
+    const order = await Order.findByPk(orderId);
 
     if (!order) {
       next(errorHandler(404, "Order not found"));
@@ -150,7 +149,7 @@ const getOrderById = async (
       (req.cookies.user.id === order.user?.id ||
         req.cookies.user.userType === "admin")
     ) {
-      const data = getGrocery(order);
+      const data = await getGrocery(order);
       res.status(200).json({ data });
     } else {
       next(errorHandler(403, "You are not authorized to view this order"));
@@ -199,7 +198,7 @@ const getAllGroceryItems = async (data: Order[]) => {
       data.map(async (orderItem: any) => {
         return await getGrocery(orderItem);
       })
-    );
+    );    
     return addedData;
   } catch (error) {
     console.error("Error fetching grocery items:", error);
@@ -209,13 +208,13 @@ const getAllGroceryItems = async (data: Order[]) => {
 
 const getGrocery = async (orderItem: any) => {
   try {
-    const orderWithGrocery = (await OrderItem.findOne({
+    const orderWithGrocery = await OrderItem.findOne({
       where: { orderId: orderItem.id },
       include: [{ model: GroceryItem, as: "groceryItem" }],
-    })) as any;
+    }) as any;
 
-    orderItem.items = orderWithGrocery ? orderWithGrocery.groceryItem : null;
-    return orderItem;
+    orderItem.items = orderWithGrocery? orderWithGrocery.groceryItem : null;
+    return {...orderItem, items: orderItem.items };
   } catch (error) {
     console.error("Error fetching grocery items:", error);
     throw new Error("Error fetching grocery items");
@@ -223,3 +222,4 @@ const getGrocery = async (orderItem: any) => {
 };
 
 export { addOrder, getAllOrder, getOrderById, getOrderByusers, getOwnOrders };
+

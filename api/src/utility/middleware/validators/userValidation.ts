@@ -53,6 +53,7 @@ gender: Joi.string().valid(...Object.values(Gender)).required(),
 });
 
 const createUserCheck=async (req: Request, res: Response,next: NextFunction) => {
+  
   const {error}=userSchema.validate(req.body);
   if(error){
     const errorMessages = error.details

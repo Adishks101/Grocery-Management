@@ -5,7 +5,7 @@ import { userPictureUpload } from "../utility/fileUpload";
 import { checkQuerygetUsers, createUserCheck, createUserSelfCheck } from "../utility/middleware/validators/userValidation";
 const router = express.Router();
 
-router.post("/admin/register",createUserCheck,isAdmin, createUser);
+router.post("/admin/register",userPictureUpload.single('userPicture'),createUserCheck,isAdmin, createUser);
 router.get("/admin/all",isAdmin,checkQuerygetUsers,getAllUsers);
 router.put("/admin/:id",isAdmin,updateUser);
 router.get("/admin/:id",isAdmin,getUserById);
