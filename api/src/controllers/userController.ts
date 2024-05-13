@@ -216,7 +216,7 @@ const banUser = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const adduserPicture = async (data: any, file: any) => {
-  data.profilePicture = process.env.URL + file.path;
+  data.profilePicture = process.env.FILEURL + "upload/userPictureUpload/"+encodeURIComponent(file.filename);
   return data;
 };
 

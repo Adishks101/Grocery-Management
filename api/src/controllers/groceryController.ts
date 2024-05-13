@@ -204,7 +204,7 @@ const changeGroceryQuantity = async (
 };
 
 const addgroceryPicture = async (data: any, file: any) => {
-  data.profilePicture = process.env.URL + file.path;
+  data.groceryPicture = process.env.URL + "upload/groceryPictureUpload/"+encodeURIComponent(file.filename);
   return data;
 };
 

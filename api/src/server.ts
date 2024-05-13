@@ -19,7 +19,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join( 'public',)));
+app.use(express.static('public'));
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "logs", "access.log"),
   { flags: "a" }
